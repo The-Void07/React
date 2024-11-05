@@ -1,6 +1,6 @@
 // We can directly pass the object as arguments to a function
 //and use them as shown below.
-export function CoreConcept({ image, title, description }) {
+export default function CoreConcept({ image, title, description }) {
   return (
     <li>
       <img src={image} alt={title} />
