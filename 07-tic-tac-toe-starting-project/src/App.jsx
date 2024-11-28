@@ -5,12 +5,16 @@ import Gameover from "./Components/Gameover.jsx";
 import { WINNING_COMBINATIONS } from "./Winning_combinations.js";
 import { useState } from "react";
 
-const initialGameBoard = [
+const PLAYERS = { X: "Player-1", O: "Player-2" };
+
+//empty array to start the game with
+const INITIAL_GAME_BOARD = [
   [null, null, null],
   [null, null, null],
   [null, null, null],
 ];
 
+//function to tell which player is active
 function deriveActivePlayer(gameTurns) {
   let currentPlayer = "X";
 
@@ -20,13 +24,8 @@ function deriveActivePlayer(gameTurns) {
   return currentPlayer;
 }
 
-function App() {
-  //const [activePlayer, setActivePlayer] = useState("X");
-  const [gameTurns, setGameTurns] = useState([]);
-
-  const activePlayer = deriveActivePlayer(gameTurns);
-
-  let gameBoard = [...initialGameBoard.map((array) => [...array])];
+function deriveGameBoard(gameTurns) {
+  let gameBoard = [...INITIAL_GAME_BOARD.map((array) => [...array])];
 
   for (const turn of gameTurns) {
     const { square, player } = turn;
@@ -34,7 +33,11 @@ function App() {
 
     gameBoard[row][col] = player;
   }
+  return gameBoard;
+}
 
+//checking if either of the player wins
+function deriveWinner(gameBoard, player) {
   let winner;
 
   for (const combination of WINNING_COMBINATIONS) {
@@ -50,16 +53,26 @@ function App() {
       firstSquareSymbol === secondSquareSymbol &&
       firstSquareSymbol === thirdSquareSymbol
     ) {
-      winner = firstSquareSymbol;
+      winner = player[firstSquareSymbol];
     }
   }
+  return winner;
+}
 
-  const hasDraw = gameTurns.length === 9 && !winner;
+//main function to execute all the ui and ux
+//it is linked to all other component files
+//and, executes the code on the webpage using index.html
+function App() {
+  //const [activePlayer, setActivePlayer] = useState("X");
+  const [gameTurns, setGameTurns] = useState([]);
+  const [player, setPlayer] = useState(PLAYERS);
 
-  function hasRestart() {
-    setGameTurns([]);
-  }
+  const activePlayer = deriveActivePlayer(gameTurns);
+  const gameBoard = deriveGameBoard(gameTurns);
+  const winner = deriveWinner(gameBoard, player);
+  const hasDraw = gameTurns.length === 9 && !winner; //to check if the game draws
 
+  //function updates the selected square and indicates which players turn is to play
   function handleSelectSquare(rowIndex, colIndex) {
     // setActivePlayer((curActivePlayer) => (curActivePlayer === "X" ? "O" : "X"));
     setGameTurns((prevTurns) => {
@@ -73,19 +86,34 @@ function App() {
     });
   }
 
+  //setting a function to reastart the game
+  function hasRestart() {
+    setGameTurns([]);
+  }
+
+  //function to handle players name using state
+  function handlePlayerNameChange(symbol, newName) {
+    setPlayer((prevPlayer) => ({
+      ...prevPlayer,
+      [symbol]: newName,
+    }));
+  }
+
   return (
     <main>
       <div id="game-container">
         <ol id="players" className="highlight-player">
           <Player
-            initialName="Player-1"
+            initialName={PLAYERS.X}
             symbol="X"
             isActive={activePlayer === "X"}
+            onChangeName={handlePlayerNameChange}
           />
           <Player
-            initialName="Player-2"
+            initialName={PLAYERS.O}
             symbol="O"
             isActive={activePlayer === "O"}
+            onChangeName={handlePlayerNameChange}
           />
         </ol>
         {(winner || hasDraw) && (
